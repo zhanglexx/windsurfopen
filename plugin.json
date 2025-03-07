@@ -1,0 +1,22 @@
+{
+  "name": "windsurf-projects",
+  "version": "1.0.0",
+  "pluginName": "WindSurf项目管理器",
+  "description": "快速搜索并打开WindSurf和VSCode项目",
+  "logo": "logo.png",
+  "preload": "preload.js",
+  "features": [
+    {
+      "code": "windsurf-projects",
+      "explain": "搜索并打开WindSurf项目",
+      "cmds": [
+        "windsurf",
+        "ws",
+        {
+          "type": "text",
+          "label": "搜索WindSurf项目"
+        }
+      ]
+    }
+  ]
+}
