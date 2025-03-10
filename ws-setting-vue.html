@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WindSurf 设置</title>
+    <!-- 引入Vue -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.2.47/dist/vue.global.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            padding: 0;
+            margin: 0;
+        }
+        
+        #app {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        
+        .header {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            background-color: #f3f3f3;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .icon-container {
+            display: flex;
+            align-items: center;
+            margin-right: 10px;
+        }
+        
+        .title {
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .tab-container {
+            display: flex;
+            align-items: center;
+            margin-right: 15px;
+            margin-left: 10px;
+        }
+        
+        .tab {
+            padding: 5px 10px;
+            font-size: 13px;
+            border-radius: 4px;
+            cursor: pointer;
+            background-color: #e0e0e0;
+        }
+        
+        .content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        .setting-container {
+            flex: 1;
+        }
+        
+        .setting-item {
+            display: flex;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+        
+        .setting-label {
+            width: 80px;
+            text-align: right;
+            padding-right: 20px;
+            font-size: 14px;
+            color: #333;
+        }
+        
+        .setting-input-container {
+            flex: 1;
+        }
+        
+        .setting-input {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            outline: none;
+            font-size: 14px;
+        }
+        
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: #009688;
+            color: white;
+        }
+        
+        .powered-by {
+            font-size: 13px;
+        }
+        
+        .save-button {
+            padding: 6px 20px;
+            background-color: #009688;
+            border: 1px solid white;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .save-button:hover {
+            background-color: #00877a;
+        }
+        
+        .message {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            background-color: #4caf50;
+            color: white;
+            border-radius: 4px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .message.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="header">
+            <div class="icon-container">
+                <span class="title">windsurf</span>
+            </div>
+            <div class="tab-container">
+                <div class="tab">ws-setting</div>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="setting-container">
+                <div class="setting-item">
+                    <div class="setting-label">shell</div>
+                    <div class="setting-input-container">
+                        <input type="text" class="setting-input" v-model="config.shell" placeholder="一般情况下无需修改，windows 请保持为空值">
+                    </div>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-label">code</div>
+                    <div class="setting-input-container">
+                        <input type="text" class="setting-input" v-model="config.code" placeholder="code">
+                    </div>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-label">db</div>
+                    <div class="setting-input-container">
+                        <input type="text" class="setting-input" v-model="config.db" placeholder="数据库路径">
+                    </div>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-label">storage</div>
+                    <div class="setting-input-container">
+                        <input type="text" class="setting-input" v-model="config.storage" placeholder="存储路径">
+                    </div>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-label">timeout</div>
+                    <div class="setting-input-container">
+                        <input type="text" class="setting-input" v-model="config.timeout" placeholder="3000">
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer">
+                <div class="powered-by">
+                    power by ⭐ utools-helper
+                </div>
+                <button class="save-button" @click="saveConfig">保存</button>
+            </div>
+        </div>
+        
+        <div class="message" :class="{ show: showMessage }">{{ message }}</div>
+    </div>
+
+    <script>
+        // 创建Vue应用
+        const { createApp, ref, reactive, onMounted } = Vue;
+        
+        createApp({
+            setup() {
+                // 配置对象
+                const config = reactive({
+                    shell: '',
+                    code: 'code',
+                    db: '',
+                    storage: '',
+                    timeout: '3000'
+                });
+                
+                // 消息提示
+                const message = ref('');
+                const showMessage = ref(false);
+                
+                // 显示消息
+                const showMessageTip = (msg) => {
+                    message.value = msg;
+                    showMessage.value = true;
+                    setTimeout(() => {
+                        showMessage.value = false;
+                    }, 3000);
+                };
+                
+                // 加载配置
+                const loadConfig = () => {
+                    try {
+                        // 从uTools获取设置
+                        config.shell = window.preload.getConfig('shell', '');
+                        config.code = window.preload.getConfig('code', 'code');
+                        config.db = window.preload.getConfig('db', '');
+                        config.storage = window.preload.getConfig('storage', '');
+                        config.timeout = window.preload.getConfig('timeout', '3000');
+                        
+                        console.log('设置已加载:', config);
+                    } catch (error) {
+                        console.error('加载设置失败:', error);
+                        showMessageTip('加载设置失败: ' + error.message);
+                    }
+                };
+                
+                // 保存配置
+                const saveConfig = () => {
+                    try {
+                        // 保存所有配置
+                        window.preload.setConfig('shell', config.shell);
+                        window.preload.setConfig('code', config.code);
+                        window.preload.setConfig('db', config.db);
+                        window.preload.setConfig('storage', config.storage);
+                        window.preload.setConfig('timeout', config.timeout);
+                        
+                        console.log('设置已保存:', config);
+                        showMessageTip('设置已保存');
+                    } catch (error) {
+                        console.error('保存设置失败:', error);
+                        showMessageTip('保存设置失败: ' + error.message);
+                    }
+                };
+                
+                // 组件挂载后执行
+                onMounted(() => {
+                    // 加载配置
+                    loadConfig();
+                });
+                
+                return {
+                    config,
+                    message,
+                    showMessage,
+                    saveConfig
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

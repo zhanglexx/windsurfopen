@@ -4,24 +4,10 @@ const os = require('os')
 const { exec } = require('child_process')
 
 // 初始化SQL.js
-const initSqlJs = async function() {
-  try {
-    const sqlJsPath = path.join(__dirname, 'sqljs', 'sql-wasm.js')
-
-    if (fs.existsSync(sqlJsPath)) {
-      // 设置SQL.js加载配置
-      return require(sqlJsPath)({
-        locateFile: file => path.join(__dirname, 'sqljs', file)
-      })
-    }
-
-    // 尝试直接加载
-    return require('sql.js')
-  } catch (error) {
-    console.error('加载sql.js失败:', error)
-    throw error
-  }
-}
+const sqlJsPath = path.join(__dirname, 'sqljs', 'sql-wasm.js');
+const initSqlJs = async () => require(sqlJsPath)({
+  locateFile: file => path.join(__dirname, 'sqljs', file)
+});
 
 // 调试函数
 function debug(message, data) {
@@ -40,7 +26,6 @@ function debug(message, data) {
       } catch (e) {
         dataStr = '无法显示数据';
       }
-      
       utools.showNotification(`${message} ${dataStr}`, 'WindSurf项目管理');
     }
   } catch (e) {
@@ -50,21 +35,45 @@ function debug(message, data) {
 
 // 配置管理
 const config = {
-  get: (key, defaultValue) => {
-    try {
-      const value = utools.dbStorage.getItem(key)
-      return value === null ? defaultValue : value
-    } catch (e) {
-      return defaultValue
+  get(key, defaultValue) {
+    // 优先从 utools.dbStorage 获取配置
+    const value = utools.dbStorage.getItem(key)
+    if (value !== null && value !== undefined) {
+      return value
     }
+    
+    // 兼容之前的存储方式
+    const configPath = path.join(__dirname, 'config.json')
+    try {
+      if (fs.existsSync(configPath)) {
+        const configData = JSON.parse(fs.readFileSync(configPath, 'utf8'))
+        return configData[key] !== undefined ? configData[key] : defaultValue
+      }
+    } catch (e) {
+      console.error('读取配置文件失败:', e)
+    }
+    
+    return defaultValue
   },
-  set: (key, value) => {
+  
+  set(key, value) {
+    // 保存到 utools.dbStorage
+    utools.dbStorage.setItem(key, value)
+    
+    // 兼容之前的存储方式
+    const configPath = path.join(__dirname, 'config.json')
     try {
-      utools.dbStorage.setItem(key, value)
-      return true
+      let configData = {}
+      if (fs.existsSync(configPath)) {
+        configData = JSON.parse(fs.readFileSync(configPath, 'utf8'))
+      }
+      configData[key] = value
+      fs.writeFileSync(configPath, JSON.stringify(configData, null, 2))
     } catch (e) {
-      return false
+      console.error('保存配置文件失败:', e)
     }
+    
+    return value
   }
 }
 
@@ -89,44 +98,42 @@ const projects = {
   // 获取可能的数据库路径
   getPossibleDBPaths() {
     const paths = []
-    const homeDir = os.homedir()
     
-    // 可能存在数据库的目录
-    const appDataDirs = [
-      // Windows
-      path.join(homeDir, 'AppData', 'Roaming', 'WindSurf'),
-      path.join(homeDir, 'AppData', 'Local', 'WindSurf'),
-      path.join(homeDir, '.windsurf'),
-      // macOS
-      path.join(homeDir, 'Library', 'Application Support', 'WindSurf'),
-      // Linux
-      path.join(homeDir, '.config', 'windsurf')
-    ]
+    // 使用配置中指定的数据库路径，如果为空则使用默认路径
+    let dbPath = config.get('db')
+    // debug('配置的数据库路径:', dbPath)
     
-    // 可能的数据库文件名
-    const dbFiles = [
-      'state.vscdb',
-      'storage.json',
-      'state.json',
-      path.join('User', 'globalStorage', 'state.vscdb'),
-      path.join('user-data', 'User', 'globalStorage', 'state.vscdb')
-    ]
+    // 如果dbPath为空，使用默认路径
+    if (!dbPath) {
+      dbPath = path.join(
+        utools.getPath("appData"),
+        "WindSurf",
+        "User",
+        "globalStorage",
+        "state.vscdb"
+      )
+      // debug('使用默认数据库路径:', dbPath)
+    }
     
-    // 组合可能的路径
-    appDataDirs.forEach(dir => {
-      if (fs.existsSync(dir)) {
-        // 检查该目录下的所有文件和子目录
-        this.scanDirectoryForDB(dir, paths)
-        
-        // 检查特定文件名
-        dbFiles.forEach(file => {
-          const fullPath = path.join(dir, file)
-          if (fs.existsSync(fullPath)) {
-            paths.push(fullPath)
-          }
-        })
-      }
-    })
+    if (fs.existsSync(dbPath)) {
+      paths.push(dbPath)
+    }
+    
+    // 使用配置中指定的storage路径，如果为空则使用默认路径
+    let storagePath = config.get('storage')
+    
+    // 如果storagePath为空，使用默认路径
+    if (!storagePath) {
+      storagePath = path.join(
+        utools.getPath("appData"), 
+        "WindSurf", 
+        "storage.json"
+      )
+    }
+    
+    if (fs.existsSync(storagePath)) {
+      paths.push(storagePath)
+    }
     
     return paths
   },
@@ -167,7 +174,6 @@ const projects = {
   async getWindSurfProjects() {
     // 获取可能的数据库路径
     const dbPaths = this.getPossibleDBPaths()
-
     if (!dbPaths || dbPaths.length === 0) {
       return []
     }
@@ -423,26 +429,93 @@ const projects = {
       // 对路径进行规范化处理
       const normalizedPath = projectUri.replace(/\//g, '\\')
 
-      cmd = `${execPath} "${normalizedPath}"`
+      cmd = `${execPath}  "${normalizedPath}"`
 
-      debug('执行命令:', cmd)
+      // debug('执行命令:', cmd)
       // 设置超时
-      const timeout = userConfig.timeout || 5000
+      const timeout = userConfig.timeout || 10000  // 延长超时时间到10秒
 
-      exec(cmd, { timeout, windowsHide: true }, (error) => {
-        if (error) {
-            debug('打开项目失败:', error)
-            debug('命令:', cmd)
-            debug('错误代码:', error.code)
-        }
-      })
-
-      // 退出插件
-      utools.outPlugin()
+      // 使用不同的方式启动进程
+      const { spawn } = require('child_process');
+      const cmdParts = cmd.split(' ');
+      const command = cmdParts[0];
+      const args = cmdParts.slice(1);
+      
+      // debug('启动进程:', command, args);
+      
+      const child = spawn(command, args, { 
+        detached: true,  // 使子进程独立于父进程
+        shell: true,     // 使用shell解释命令
+        stdio: 'ignore', // 忽略stdin/stdout/stderr
+        windowsHide: false // 显示窗口
+      });
+      
+      // 分离子进程，使其可以在父进程退出后继续运行
+      child.unref();
+      
+      // 延迟一段时间后退出插件，给进程启动一些时间
+      setTimeout(() => {
+        // 退出插件
+        utools.outPlugin();
+      }, 1000);  // 延迟1秒退出
     } catch (error) {
-      console.error('打开项目失败:', error)
+      console.error('打开项目失败:', error);
+      debug('打开项目失败:', error);
     }
   }
+}
+
+// 为ws-setting.js提供的辅助函数
+const wsSettingHelpers = {
+  getConfig(key, defaultValue) {
+    return config.get(key, defaultValue)
+  },
+  
+  setConfig(key, value) {
+    return config.set(key, value)
+  },
+  
+  isWindows() {
+    return os.platform() === 'win32'
+  },
+  
+  isMac() {
+    return os.platform() === 'darwin'
+  },
+  
+  isLinux() {
+    return os.platform() === 'linux'
+  },
+  
+  getHomePath() {
+    return os.homedir()
+  },
+  
+  getAppDataPath() {
+    return utools.getPath('appData')
+  },
+  
+  joinPath(...args) {
+    return path.join(...args)
+  },
+  
+  fileExists(filePath) {
+    return fs.existsSync(filePath)
+  }
+}
+
+// 暴露utools API给webview
+window.preload = {
+  // 暴露config对象
+  config: config,
+  
+  // 暴露getPossibleDBPaths方法
+  getPossibleDBPaths: function() {
+    return projects.getPossibleDBPaths()
+  },
+  
+  // 暴露调试函数
+  debug: debug
 }
 
 // 导出uTools插件
@@ -562,6 +635,52 @@ window.exports = {
       
       // 插件设置
       placeholder: '搜索WindSurf项目'
+    }
+  },
+  'windsurf-settings': {
+    mode: 'none',
+    args: {
+      // 进入插件时调用
+      enter: (action) => {
+        try {
+          // 使用redirect跳转到设置页面功能
+          utools.redirect('windsurf-setting-page');
+        } catch (error) {
+          console.error('打开设置页面失败:', error);
+          utools.showNotification('打开设置页面失败: ' + error.message);
+        }
+      }
+    }
+  },
+  'windsurf-setting-page': {
+    mode: 'list',
+    args: {
+      // 进入设置页面
+      enter: (action) => {
+        // 先确保主窗口显示
+        utools.showMainWindow();
+        
+        // 读取设置表单HTML
+        const settingHTML = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
+        
+        // 创建设置表单DOM
+        const parser = new DOMParser();
+        const settingDoc = parser.parseFromString(settingHTML, 'text/html');
+        
+        // 清空当前内容
+        document.body.innerHTML = '';
+        
+        // 添加设置页面内容
+        document.body.innerHTML = settingHTML;
+        
+        // 添加脚本
+        const script = document.createElement('script');
+        script.src = './setting.js';
+        document.body.appendChild(script);
+        
+        // 返回空列表，这样就不会显示搜索结果
+        return [];
+      }
     }
   }
 }
