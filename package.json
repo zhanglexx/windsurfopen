@@ -1,4 +1,11 @@
 {
+  "name": "windsurfopen",
+  "version": "1.0.0",
+  "description": "WindSurf项目管理工具",
+  "main": "preload.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
   "dependencies": {
     "sql.js": "^1.12.0"
   }
