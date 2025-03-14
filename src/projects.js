@@ -10,13 +10,7 @@ const debug = require('./debug')
 const config = require('./config')
 const userConfig = require('./userConfig')
 
-// SQL.js 初始化
-let SQL
-
-/**
- * 初始化SQL.js
- */
-// 使用简化的SQL.js加载方式
+// 初始化SQL.js
 const initSqlJs = require('../sqljs/sql-wasm')
 
 // 项目管理对象
@@ -72,8 +66,6 @@ const projects = {
    * @returns {Promise<Array>} 项目列表
    */
   async getProjectsFromDB(dbPath) {
-
-    
     try {
       // 初始化SQL.js
       const SQL = await initSqlJs()
@@ -88,82 +80,82 @@ const projects = {
       // 使用单一SQL查询获取数据
       const sql = "SELECT value FROM ItemTable WHERE key = 'history.recentlyOpenedPathsList'"
       
-      const results = db.exec(sql)
-      if (!results || results.length === 0 || !results[0].values || results[0].values.length === 0) {
-        db.close()
-        return []
-      }
-      
-      const res = results[0].values[0].toString()
-      
-      if (!res) {
-        db.close()
-        return []
-      }
-      
-      // 解析结果
-      const data = JSON.parse(res)
-      
-      if (!data.entries || !Array.isArray(data.entries)) {
-        db.close()
-        return []
-      }
-      
-      // 处理每个条目
-      const projectList = []
-      
-      for (const entry of data.entries) {
-        try {
-          let uri = null
-          let name = null
-          let isWorkspace = false
-          
-          if (typeof entry === 'string') {
-            uri = entry
-          } else {
-            // 获取路径
-            uri = entry.fileUri || entry.folderUri || (entry.workspace ? entry.workspace.configPath : null)
+        const results = db.exec(sql)
+        if (!results || results.length === 0 || !results[0].values || results[0].values.length === 0) {
+          db.close()
+          return []
+        }
+        
+        const res = results[0].values[0].toString()
+        
+        if (!res) {
+          db.close()
+          return []
+        }
+        
+        // 解析结果
+        const data = JSON.parse(res)
+        
+        if (!data.entries || !Array.isArray(data.entries)) {
+          db.close()
+          return []
+        }
+        
+        // 处理每个条目
+        const projectList = []
+        
+        for (const entry of data.entries) {
+          try {
+            let uri = null
+            let name = null
+            let isWorkspace = false
             
-            // 判断是否为工作区
-            isWorkspace = !!entry.workspace || (uri && uri.endsWith('.code-workspace'))
-          }
-          
-          // 处理URI格式
-          if (uri && typeof uri === 'string') {
-            // 移除file://前缀
-            if (uri.startsWith('file://')) {
-              uri = uri.replace('file://', '')
+            if (typeof entry === 'string') {
+              uri = entry
+            } else {
+              // 获取路径
+              uri = entry.fileUri || entry.folderUri || (entry.workspace ? entry.workspace.configPath : null)
               
-              // 处理Windows路径
-              if (os.platform() === 'win32' && uri.startsWith('/')) {
-                uri = uri.substring(1)
-              }
-              
-              // URI解码
-              uri = decodeURIComponent(uri)
+              // 判断是否为工作区
+              isWorkspace = !!entry.workspace || (uri && uri.endsWith('.code-workspace'))
             }
             
-            // 获取名称
-            name = entry.label || path.basename(uri, isWorkspace ? path.extname(uri) : '')
-            
-            // 添加到项目列表
-            projectList.push({
-              name: name,
-              uri: uri,
-              isWorkspace: isWorkspace,
-              lastOpened: entry.timestamp || Date.now(),
-              source: 'WindSurf/VSCode'
-            })
+            // 处理URI格式
+            if (uri && typeof uri === 'string') {
+              // 移除file://前缀
+              if (uri.startsWith('file://')) {
+                uri = uri.replace('file://', '')
+                
+                // 处理Windows路径
+                if (os.platform() === 'win32' && uri.startsWith('/')) {
+                  uri = uri.substring(1)
+                }
+                
+                // URI解码
+                uri = decodeURIComponent(uri)
+              }
+              
+              // 获取名称
+              name = entry.label || path.basename(uri, isWorkspace ? path.extname(uri) : '')
+              
+              // 添加到项目列表
+              projectList.push({
+                name: name,
+                uri: uri,
+                isWorkspace: isWorkspace,
+                lastOpened: entry.timestamp || Date.now(),
+                source: 'WindSurf/VSCode'
+              })
+            }
+          } catch (e) {
+            debug('处理项目条目出错: ' + e.message)
           }
-        } catch (e) {
-          debug('处理项目条目出错: ' + e.message)
         }
-      }
-      
-      // 关闭数据库连接
-      db.close()
-      
-      return projectList
+        
+        // 关闭数据库连接
+        db.close()
+        
+        return projectList
     } catch (error) {
       debug('从数据库获取项目时出错: ' + error.message)
       return []
@@ -194,45 +186,6 @@ const projects = {
     } catch (error) {
       return sampleProjects
     }
-  },
-  
-  /**
-   * 递归扫描目录寻找数据库文件
-   * @param {string} dirPath 目录路径
-   * @param {string[]} result 结果数组
-   * @returns {string[]} 数据库文件路径列表
-   */
-  scanDirectoryForDB(dirPath, result = []) {
-    if (!fs.existsSync(dirPath)) {
-      return result
-    }
-    
-    try {
-      const entries = fs.readdirSync(dirPath, { withFileTypes: true })
-      
-      for (const entry of entries) {
-        const fullPath = path.join(dirPath, entry.name)
-        
-        if (entry.isDirectory()) {
-          // 递归扫描子目录
-          this.scanDirectoryForDB(fullPath, result)
-        } else if (entry.isFile()) {
-          // 检查文件扩展名
-          if (
-            entry.name.endsWith('.vscdb') || 
-            entry.name.endsWith('.db') ||
-            entry.name === 'state.vscdb' ||
-            entry.name === 'storage.json'
-          ) {
-            result.push(fullPath)
-          }
-        }
-      }
-    } catch (error) {
-      console.error(`扫描目录失败 ${dirPath}:`, error)
-    }
-    
-    return result
   },
   
   /**
@@ -278,7 +231,7 @@ const projects = {
       // 获取编辑器路径，确保是字符串
       let execPath = 'windsurf';
 
-      const configPath = userConfig.windSurfPath();
+      const configPath = userConfig.getWindSurfPath();
       if (configPath && typeof configPath === 'string' && configPath.length > 0) {
         execPath = configPath;
       }
@@ -299,7 +252,7 @@ const projects = {
       // 获取超时设置
       let timeout = 3000; // 默认3秒
       try {
-        const configTimeout = userConfig.timeout();
+        const configTimeout = userConfig.getTimeout();
         if (configTimeout && typeof configTimeout === 'number' && configTimeout >= 1000) {
           timeout = configTimeout;
         }
@@ -391,6 +344,5 @@ const projects = {
 
 // 导出项目管理对象
 module.exports = {
-  projects,
-  initSqlJs
+  projects
 }

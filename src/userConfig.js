@@ -10,7 +10,7 @@ const userConfig = {
    * 获取WindSurf路径
    * @returns {string} WindSurf路径
    */
-  windSurfPath() {
+  getWindSurfPath() {
     return config.get('windSurfPath', '')
   },
   
@@ -18,7 +18,7 @@ const userConfig = {
    * 设置WindSurf路径
    * @param {string} value WindSurf路径
    */
-  windSurfPath(value) {
+  setWindSurfPath(value) {
     return config.set('windSurfPath', value)
   },
   
@@ -26,7 +26,7 @@ const userConfig = {
    * 获取超时时间
    * @returns {number} 超时时间(毫秒)
    */
-  timeout() {
+  getTimeout() {
     return config.get('timeout', 10000)
   },
   
@@ -34,7 +34,7 @@ const userConfig = {
    * 设置超时时间
    * @param {number} value 超时时间(毫秒)
    */
-  timeout(value) {
+  setTimeout(value) {
     return config.set('timeout', value)
   }
 }

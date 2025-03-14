@@ -27,7 +27,7 @@ const config = {
             global.pluginConfig = {}
           }
         } catch (e) {
-          console.error('读取配置文件失败:', e)
+          debug('读取配置文件失败:', e)
           global.pluginConfig = {}
         }
       }
@@ -35,7 +35,7 @@ const config = {
       // 返回配置或默认值
       return global.pluginConfig[key] !== undefined ? global.pluginConfig[key] : defaultValue
     } catch (e) {
-      console.error('获取配置失败:', e)
+      debug('获取配置失败:', e)
       return defaultValue
     }
   },
@@ -61,7 +61,7 @@ const config = {
       
       return true
     } catch (e) {
-      console.error('保存配置失败:', e)
+      debug('保存配置失败:', e)
       return false
     }
   }

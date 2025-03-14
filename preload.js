@@ -7,29 +7,32 @@ const { exec } = require('child_process')
 const debug = require('./src/debug')
 const config = require('./src/config')
 const userConfig = require('./src/userConfig')
-const { projects, initSqlJs } = require('./src/projects')
+const projects = require('./src/projects').projects
 const helpers = require('./src/helpers')
 const plugin = require('./src/plugin')
 
 global.utools = utools
 
-// 初始化SQL.js
-initSqlJs()
-
 window.preload = {
   config: {
-    get: helpers.getConfig,
-    set: helpers.setConfig
+    get: config.get,
+    set: config.set
   },
   isWindows: helpers.isWindows,
   isMac: helpers.isMac,
   isLinux: helpers.isLinux,
   getHomePath: helpers.getHomePath,
   getAppDataPath: helpers.getAppDataPath,
-  joinPath: helpers.joinPath,
   fileExists: helpers.fileExists,
 
-  getPossibleDBPaths: () => projects.getPossibleDBPaths(),
+  // 用户配置
+  userConfig: {
+    getWindSurfPath: userConfig.getWindSurfPath,
+    setWindSurfPath: userConfig.setWindSurfPath,
+    getTimeout: userConfig.getTimeout,
+    setTimeout: userConfig.setTimeout
+  },
+
   // 调试函数
   debug: debug
 }

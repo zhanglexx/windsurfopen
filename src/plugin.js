@@ -27,7 +27,7 @@ const plugin = {
             }))
           )
         } catch (error) {
-          console.error('搜索项目失败:', error)
+          debug('搜索项目失败:', error)
           callbackSetList([])
         }
       },
@@ -54,7 +54,7 @@ const plugin = {
             }))
           )
         } catch (error) {
-          console.error('搜索项目失败:', error)
+          debug('搜索项目失败:', error)
           callbackSetList([])
         }
       },
@@ -66,7 +66,7 @@ const plugin = {
           projects.openProject(itemData.data.uri, itemData.data.isWorkspace)
           return { type: 'success' }
         } catch (error) {
-          console.error('打开项目失败:', error)
+          debug('打开项目失败:', error)
           return { type: 'error', message: `打开项目失败: ${error.message}` }
         }
       },
@@ -117,7 +117,7 @@ const plugin = {
             }
           )
         } catch (error) {
-          console.error('打开设置窗口失败:', error)
+          debug('打开设置窗口失败:', error)
         }
       }
     }
