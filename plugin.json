@@ -14,7 +14,6 @@
       "code": "windsurf-projects",
       "explain": "搜索并打开WindSurf项目",
       "cmds": [
-        "windsurf",
         "ws",
         {
           "type": "text",
@@ -33,11 +32,6 @@
           "label": "WindSurf设置"
         }
       ]
-    },
-    {
-      "code": "windsurf-setting-page",
-      "explain": "WindSurf设置页面",
-      "cmds": []
     }
   ]
 }
