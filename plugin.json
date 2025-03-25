@@ -23,14 +23,10 @@
     },
     {
       "code": "windsurf-settings",
-      "explain": "WindSurf设置",
+      "explain": "WindSurf项目管理设置",
       "cmds": [
         "ws-setting",
-        "ws-config",
-        {
-          "type": "over",
-          "label": "WindSurf设置"
-        }
+        "ws-config"
       ]
     }
   ]

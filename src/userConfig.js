@@ -2,8 +2,6 @@
  * 用户配置模块 - 管理用户特定配置
  */
 
-const config = require('./config')
-
 // 用户配置对象
 const userConfig = {
   /**
@@ -11,7 +9,7 @@ const userConfig = {
    * @returns {string} WindSurf路径
    */
   getWindSurfPath() {
-    return config.get('windSurfPath', '')
+    return window.utools.dbStorage.getItem('windSurfPath') || ''
   },
   
   /**
@@ -19,7 +17,7 @@ const userConfig = {
    * @param {string} value WindSurf路径
    */
   setWindSurfPath(value) {
-    return config.set('windSurfPath', value)
+    return window.utools.dbStorage.setItem('windSurfPath', value)
   },
   
   /**
@@ -27,7 +25,7 @@ const userConfig = {
    * @returns {number} 超时时间(毫秒)
    */
   getTimeout() {
-    return config.get('timeout', 10000)
+    return window.utools.dbStorage.getItem('timeout') || 10000
   },
   
   /**
@@ -35,9 +33,43 @@ const userConfig = {
    * @param {number} value 超时时间(毫秒)
    */
   setTimeout(value) {
-    return config.set('timeout', value)
+    return window.utools.dbStorage.setItem('timeout', value)
+  },
+
+  /**
+   * 获取数据库路径
+   * @returns {string} 数据库路径
+   */
+  getDBPath() {
+    return window.utools.dbStorage.getItem('dbPath') || ''
+  },
+  
+  /**
+   * 设置数据库路径
+   * @param {string} value 数据库路径
+   */
+  setDBPath(value) {
+    return window.utools.dbStorage.setItem('dbPath', value)
+  },
+  
+  /**
+   * 获取存储路径
+   * @returns {string} 存储路径
+   */
+  getStoragePath() {
+    return window.utools.dbStorage.getItem('storagePath') || ''
+  },
+  
+  /**
+   * 设置存储路径
+   * @param {string} value 存储路径
+   */
+  setStoragePath(value) {
+    return window.utools.dbStorage.setItem('storagePath', value)
   }
 }
 
 // 导出用户配置对象
-module.exports = userConfig
+module.exports = {
+  userConfig
+}

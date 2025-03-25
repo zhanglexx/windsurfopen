@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WindSurf设置</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 10px;
+        }
+        .header h1 {
+            font-size: 20px;
+            margin: 0;
+        }
+        .form-group {
+            margin-bottom: 20px;
+            display: flex;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+        }
+        .form-label {
+            width: 120px;
+            text-align: right;
+            padding-right: 20px;
+            padding-top: 10px;
+            font-weight: 500;
+        }
+        .form-input {
+            flex: 1;
+        }
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        input[type="text"]:focus, input[type="number"]:focus {
+            outline: none;
+            border-color: #1e88e5;
+            box-shadow: 0 0 0 2px rgba(30, 136, 229, 0.2);
+        }
+        .form-help {
+            font-size: 12px;
+            color: #777;
+            margin-top: 5px;
+        }
+        .button-container {
+            text-align: right;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: #0c7d7d;
+            padding: 15px;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .save-button {
+            background-color: #fff;
+            color: #0c7d7d;
+            border: none;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .save-button:hover {
+            background-color: #f5f5f5;
+        }
+        .poweredby {
+            text-align: center;
+            padding: 10px;
+            color: #888;
+            font-size: 12px;
+            margin-top: 30px;
+        }
+        .poweredby a {
+            color: #0c7d7d;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>WindSurf设置</h1>
+        </div>
+
+        <form id="settingsForm">
+
+            <div class="form-group">
+                <div class="form-label">windsurf exec</div>
+                <div class="form-input">
+                    <input type="text" id="code" name="code" placeholder="WindSurf可执行文件路径或命令">
+                    <div class="form-help">WindSurf可执行文件的完整路径或命令</div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="form-label">db</div>
+                <div class="form-input">
+                    <input type="text" id="db" name="db" placeholder="默认: %USERPROFILE%\AppData\Roaming\Code\User\globalStorage\state.vscdb">
+                    <div class="form-help">WindSurf数据库文件路径</div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="form-label">storage</div>
+                <div class="form-input">
+                    <input type="text" id="storage" name="storage" placeholder="默认: %USERPROFILE%\AppData\Roaming\Code\User\globalStorage\storage.json">
+                    <div class="form-help">WindSurf存储文件路径</div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="form-label">timeout</div>
+                <div class="form-input">
+                    <input type="number" id="timeout" name="timeout" placeholder="打开项目的超时时间(毫秒)">
+                    <div class="form-help">打开项目的超时时间(毫秒)</div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="button-container">
+        <button class="save-button" id="saveBtn">保存</button>
+    </div>
+
+    <script>
+        // 页面加载后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 获取当前配置
+            try {
+                let windSurfPath = window.utools.dbStorage.getItem('windSurfPath') || '';
+                const timeout = parseInt(window.utools.dbStorage.getItem('timeout')) || 3000;
+                let dbPath = window.utools.dbStorage.getItem('dbPath') || '';
+                let storagePath = window.utools.dbStorage.getItem('storagePath') || '';
+                
+                // 使用 utools API 获取系统信息
+                const userHome = window.utools.getPath('home');
+                
+                // 系统默认路径 - 使用字符串拼接而不是 path.join
+                const defaultDbPath = userHome + '\\AppData\\Roaming\\WindSurf\\User\\globalStorage\\state.vscdb';
+                const defaultStoragePath = userHome + '\\AppData\\Roaming\\WindSurf\\User\\globalStorage\\storage.json';
+                
+                if (!windSurfPath) {
+                    windSurfPath = "windsurf";
+                }
+                
+                // 如果用户没有设置值，则使用默认路径
+                if (!dbPath) {
+                    dbPath = defaultDbPath;
+                }
+                
+                if (!storagePath) {
+                    storagePath = defaultStoragePath;
+                }
+
+                // 填充表单
+                document.getElementById('code').value = windSurfPath;
+                document.getElementById('db').value = dbPath;
+                document.getElementById('storage').value = storagePath;
+                document.getElementById('timeout').value = timeout;
+
+                // 保存按钮点击事件
+                document.getElementById('saveBtn').addEventListener('click', function() {
+                    const code = document.getElementById('code').value;
+                    const db = document.getElementById('db').value;
+                    const storage = document.getElementById('storage').value;
+                    const timeout = parseInt(document.getElementById('timeout').value) || 3000;
+
+                    // 保存配置
+                    window.utools.dbStorage.setItem('windSurfPath', code);
+                    window.utools.dbStorage.setItem('timeout', timeout);
+                    window.utools.dbStorage.setItem('dbPath', db);
+                    window.utools.dbStorage.setItem('storagePath', storage);
+
+                    // 显示保存成功通知
+                    window.utools.showNotification('设置已保存', 'WindSurf项目管理');
+                });
+            } catch (error) {
+                console.error('初始化设置页面失败:', error);
+                window.utools.showNotification('初始化设置页面失败: ' + error.message, 'WindSurf项目管理');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -8,7 +8,7 @@ const os = require('os')
 const { exec } = require('child_process')
 const debug = require('./debug')
 const config = require('./config')
-const userConfig = require('./userConfig')
+const { userConfig } = require('./userConfig')
 
 // 初始化SQL.js
 const initSqlJs = require('../sqljs/sql-wasm')
@@ -21,14 +21,14 @@ const projects = {
    * @returns {string} 数据库文件路径
    */
   getDBPath() {
-    
-    // 首先尝试从配置获取路径
-    let dbPath = config.get('dbPath')
+
+    // 首先尝试从 utools.dbStorage 获取路径
+    let dbPath = window.utools.dbStorage.getItem('dbPath')
     
     if (dbPath && fs.existsSync(dbPath)) {
       return dbPath
     }
-    
+
     // 如果配置中没有或路径不存在，使用WindSurf默认路径
     dbPath = path.join(
       os.homedir(),
@@ -36,26 +36,12 @@ const projects = {
       "User", "globalStorage",
       "state.vscdb"
     )
-    
+
     if (fs.existsSync(dbPath)) {
       return dbPath
     } else {
       debug('WindSurf默认路径不存在 请使用ws-setting配置路径')
     }
-
-    // 最后尝试使用VS Code的路径
-    dbPath = path.join(
-      os.homedir(),
-      "AppData", "Roaming", "Code",
-      "User", "globalStorage",
-      "state.vscdb"
-    )
-
-    if (fs.existsSync(dbPath)) {
-      return dbPath
-    } else {
-    }
-    
     return null
   },
   
@@ -204,7 +190,6 @@ const projects = {
       
       const execOptions = { ...defaultOptions, ...options };
       
-      
       exec(command, execOptions, (error, stdout, stderr) => {
         if (error) {
           debug('命令执行错误: ' + error.message);
@@ -266,19 +251,19 @@ const projects = {
         windowsHide: true,
         encoding: 'utf8'
       });
-      
+
       // 隐藏主窗口
       if (global.utools) {
         global.utools.hideMainWindow();
       }
-      
+
       return true;
     } catch (error) {
       debug('打开项目失败: ' + error.message);
       return false;
     }
   },
-  
+
   /**
    * 解析命令行字符串
    * @param {string} commandLine 命令行字符串
