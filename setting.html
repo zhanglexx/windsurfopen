@@ -116,7 +116,7 @@
             <div class="form-group">
                 <div class="form-label">db</div>
                 <div class="form-input">
-                    <input type="text" id="db" name="db" placeholder="默认: %USERPROFILE%\AppData\Roaming\Code\User\globalStorage\state.vscdb">
+                    <input type="text" id="db" name="db" placeholder="默认: %USERPROFILE%\AppData\WindSurf\User\globalStorage\state.vscdb">
                     <div class="form-help">WindSurf数据库文件路径</div>
                 </div>
             </div>
@@ -124,7 +124,7 @@
             <div class="form-group">
                 <div class="form-label">storage</div>
                 <div class="form-input">
-                    <input type="text" id="storage" name="storage" placeholder="默认: %USERPROFILE%\AppData\Roaming\Code\User\globalStorage\storage.json">
+                    <input type="text" id="storage" name="storage" placeholder="默认: %USERPROFILE%\AppData\WindSurf\User\globalStorage\storage.json">
                     <div class="form-help">WindSurf存储文件路径</div>
                 </div>
             </div>
@@ -152,25 +152,20 @@
                 const timeout = parseInt(window.utools.dbStorage.getItem('timeout')) || 3000;
                 let dbPath = window.utools.dbStorage.getItem('dbPath') || '';
                 let storagePath = window.utools.dbStorage.getItem('storagePath') || '';
-                
-                // 使用 utools API 获取系统信息
-                const userHome = window.utools.getPath('home');
-                
-                // 系统默认路径 - 使用字符串拼接而不是 path.join
-                const defaultDbPath = userHome + '\\AppData\\Roaming\\WindSurf\\User\\globalStorage\\state.vscdb';
-                const defaultStoragePath = userHome + '\\AppData\\Roaming\\WindSurf\\User\\globalStorage\\storage.json';
-                
+
                 if (!windSurfPath) {
                     windSurfPath = "windsurf";
                 }
                 
                 // 如果用户没有设置值，则使用默认路径
                 if (!dbPath) {
-                    dbPath = defaultDbPath;
+                    // 使用默认路径
+                    dbPath = window.utools.getPath("appData") + "\\WindSurf\\User\\globalStorage\\state.vscdb";
                 }
                 
                 if (!storagePath) {
-                    storagePath = defaultStoragePath;
+                    // 使用默认路径
+                    storagePath = window.utools.getPath("appData") + "\\WindSurf\\User\\globalStorage\\storage.json";
                 }
 
                 // 填充表单

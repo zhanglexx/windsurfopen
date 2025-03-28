@@ -28,7 +28,7 @@ const plugin = {
             projectList.map(project => ({
               title: project.name,
               description: project.uri,
-              icon: 'logo.png',
+              icon: projects.getProjectIcon(project.uri, project.isWorkspace),
               data: project
             }))
           )
@@ -55,7 +55,7 @@ const plugin = {
             result.map(project => ({
               title: project.name,
               description: project.uri,
-              icon: 'logo.png',
+              icon: projects.getProjectIcon(project.uri, project.isWorkspace),
               data: project
             }))
           )

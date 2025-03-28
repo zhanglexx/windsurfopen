@@ -7,14 +7,41 @@ const path = require('path')
 const os = require('os')
 const { exec } = require('child_process')
 const debug = require('./debug')
-const config = require('./config')
 const { userConfig } = require('./userConfig')
 
 // 初始化SQL.js
 const initSqlJs = require('../sqljs/sql-wasm')
 
+
 // 项目管理对象
 const projects = {
+  /**
+   * 获取项目图标
+   * @param {string} uri 项目路径
+   * @param {boolean} isWorkspace 是否为工作区
+   * @returns {string} 图标路径
+   */
+  getProjectIcon(uri, isWorkspace) {
+    try {
+      // 检查路径是否存在
+      if (!uri || !fs.existsSync(uri)) {
+        return 'logo.png';
+      }
+      
+      // 检查是否为目录
+      const stats = fs.statSync(uri);
+      if (stats.isDirectory() || isWorkspace) {
+        return 'icon/folder.png';
+      }
+      
+      // 默认为文件图标
+      return 'logo.png';
+    } catch (error) {
+      debug('获取项目图标失败: ' + error.message);
+      return 'logo.png';
+    }
+  },
+  
   /**
    * 获取数据库路径
    * 只处理config中的路径和WindSurf的路径
@@ -24,23 +51,50 @@ const projects = {
 
     // 首先尝试从 utools.dbStorage 获取路径
     let dbPath = window.utools.dbStorage.getItem('dbPath')
-    
+
     if (dbPath && fs.existsSync(dbPath)) {
       return dbPath
     }
 
     // 如果配置中没有或路径不存在，使用WindSurf默认路径
     dbPath = path.join(
-      os.homedir(),
-      "AppData", "Roaming", "WindSurf",
+      window.utools.getPath("appData"),
+      "WindSurf",
       "User", "globalStorage",
       "state.vscdb"
     )
-
     if (fs.existsSync(dbPath)) {
       return dbPath
     } else {
       debug('WindSurf默认路径不存在 请使用ws-setting配置路径')
+    }
+    return null
+  },
+  
+  /**
+   * 获取存储路径
+   * @returns {string} 存储文件路径
+   */
+  getStoragePath() {
+    // 首先尝试从 utools.dbStorage 获取路径
+    let storagePath = window.utools.dbStorage.getItem('storagePath')
+    
+    if (storagePath && fs.existsSync(storagePath)) {
+      return storagePath
+    }
+    
+    // 如果配置中没有或路径不存在，使用WindSurf默认路径
+    storagePath = path.join(
+      window.utools.getPath("appData"),
+      "WindSurf",
+      "User", "globalStorage",
+      "storage.json"
+    )
+    
+    if (fs.existsSync(storagePath)) {
+      return storagePath
+    } else {
+      debug('WindSurf默认存储路径不存在 请使用ws-setting配置路径')
     }
     return null
   },
@@ -160,7 +214,6 @@ const projects = {
       if (!dbPath) {
         return sampleProjects
       }
-      
       // 从数据库获取项目
       const projects = await this.getProjectsFromDB(dbPath)
       
