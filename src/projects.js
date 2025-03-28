@@ -5,7 +5,7 @@
 const fs = require('fs')
 const path = require('path')
 const os = require('os')
-const { exec } = require('child_process')
+const { exec, execSync } = require('child_process')
 const debug = require('./debug')
 const { userConfig } = require('./userConfig')
 
@@ -42,6 +42,21 @@ const projects = {
     }
   },
   
+  /**
+   * 查找 Windsurf 可执行文件的路径
+   * @returns {string | null} Windsurf 可执行文件的路径，如果未找到则返回 null
+   */
+  getWindsurfPath() {
+    try {
+      return window.utools.isWindows()
+        ? execSync('where windsurf').toString().trim().split('\n')[0]
+        : execSync('which windsurf').toString().trim();
+    } catch (error) {
+      debug('无法找到 windsurf，请确保它已安装并在 PATH 中');
+      return null;
+    }
+  },
+
   /**
    * 获取数据库路径
    * 只处理config中的路径和WindSurf的路径
@@ -267,13 +282,12 @@ const projects = {
   async openProject(projectUri, isWorkspace) {
     try {
       // 获取编辑器路径，确保是字符串
-      let execPath = 'windsurf';
+      let execPath = this.getWindsurfPath()
 
-      const configPath = userConfig.getWindSurfPath();
-      if (configPath && typeof configPath === 'string' && configPath.length > 0) {
-        execPath = configPath;
-      }
-
+      // const configPath = userConfig.getWindSurfPath();
+      // if (configPath && typeof configPath === 'string' && configPath.length > 0) {
+      //   execPath = configPath;
+      // }
       // 避免使用trim，直接判断路径中是否有空格
       if (execPath.indexOf(' ') >= 0) {
         execPath = `"${execPath}"`;

@@ -28,6 +28,17 @@
         "ws-setting",
         "ws-config"
       ]
+    },
+    {
+      "code": "windsurf",
+      "explain": "WindSurf中打开",
+      "cmds": [
+        "windsurf中打开",
+        {
+          "type": "text",
+          "label": "在WindSurf中打开"
+        }
+      ]
     }
   ]
 }

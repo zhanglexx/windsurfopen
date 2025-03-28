@@ -11,7 +11,7 @@ const userConfig = {
   getWindSurfPath() {
     return window.utools.dbStorage.getItem('windSurfPath') || ''
   },
-  
+
   /**
    * 设置WindSurf路径
    * @param {string} value WindSurf路径
@@ -19,7 +19,7 @@ const userConfig = {
   setWindSurfPath(value) {
     return window.utools.dbStorage.setItem('windSurfPath', value)
   },
-  
+
   /**
    * 获取超时时间
    * @returns {number} 超时时间(毫秒)
@@ -27,7 +27,7 @@ const userConfig = {
   getTimeout() {
     return window.utools.dbStorage.getItem('timeout') || 10000
   },
-  
+
   /**
    * 设置超时时间
    * @param {number} value 超时时间(毫秒)
@@ -43,7 +43,7 @@ const userConfig = {
   getDBPath() {
     return window.utools.dbStorage.getItem('dbPath') || ''
   },
-  
+
   /**
    * 设置数据库路径
    * @param {string} value 数据库路径
@@ -51,7 +51,7 @@ const userConfig = {
   setDBPath(value) {
     return window.utools.dbStorage.setItem('dbPath', value)
   },
-  
+
   /**
    * 获取存储路径
    * @returns {string} 存储路径
@@ -59,7 +59,7 @@ const userConfig = {
   getStoragePath() {
     return window.utools.dbStorage.getItem('storagePath') || ''
   },
-  
+
   /**
    * 设置存储路径
    * @param {string} value 存储路径

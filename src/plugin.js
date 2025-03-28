@@ -106,6 +106,27 @@ const plugin = {
       },
     },
   },
+
+  // 在WindSurf中打开
+  "windsurf": {
+    mode: "none",
+    args: {
+      enter: async () => {
+        try {
+          // 读取当前文件管理器窗口路径
+          const currentPath = await window.utools.readCurrentFolderPath();
+          if (currentPath || currentPath === '{}') {
+            // 打开当前路径的项目
+            projects.openProject(currentPath, false);
+          } else {
+            debug('无法获取当前路径，请确保当前活动窗口是文件管理器');
+          }
+        } catch (error) {
+          debug('无法获取当前路径，请确保当前活动窗口是文件管理器');
+        }
+      }
+    },
+  },
 }
 
 // 导出插件定义
