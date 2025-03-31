@@ -48,9 +48,10 @@ const projects = {
    */
   getWindsurfPath() {
     try {
+      const env = Object.assign({}, process.env, { PATH: process.env.PATH + ':/usr/local/bin:/usr/bin' });
       return window.utools.isWindows()
-        ? execSync('where windsurf').toString().trim().split('\n')[0]
-        : execSync('which windsurf').toString().trim();
+        ? execSync('where windsurf', { env }).toString().trim().split('\n')[0]
+        : execSync('which windsurf', { env }).toString().trim();
     } catch (error) {
       debug('无法找到 windsurf，请确保它已安装并在 PATH 中');
       return null;
@@ -284,10 +285,10 @@ const projects = {
       // 获取编辑器路径，确保是字符串
       let execPath = this.getWindsurfPath()
 
-      // const configPath = userConfig.getWindSurfPath();
-      // if (configPath && typeof configPath === 'string' && configPath.length > 0) {
-      //   execPath = configPath;
-      // }
+      const configPath = userConfig.getWindSurfPath();
+      if (configPath && typeof configPath === 'string' && configPath.length > 0 && configPath !== "windsurf") {
+        execPath = configPath;
+      }
       // 避免使用trim，直接判断路径中是否有空格
       if (execPath.indexOf(' ') >= 0) {
         execPath = `"${execPath}"`;

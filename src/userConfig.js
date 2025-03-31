@@ -9,7 +9,31 @@ const userConfig = {
    * @returns {string} WindSurf路径
    */
   getWindSurfPath() {
-    return window.utools.dbStorage.getItem('windSurfPath') || ''
+    // 首先从数据库获取用户设置的路径
+    const storedPath = window.utools.dbStorage.getItem('windSurfPath');
+    if (storedPath) {
+      return storedPath;
+    }
+    
+    // 如果没有用户设置，尝试查找系统中的WindSurf路径
+    try {
+      // 使用utools API查找可执行文件
+      const command = window.utools.isWindows() ? 'where windsurf' : 'which windsurf';
+      
+      // 使用utools.shellExec执行命令
+      const result = window.utools.shellExec(command);
+      
+      if (result.exitCode === 0 && result.stdout) {
+        // 处理可能的多行结果（Windows上）
+        const path = result.stdout.trim().split('\n')[0];
+        return path;
+      }
+    } catch (error) {
+      console.error('查找WindSurf路径失败:', error);
+    }
+    
+    // 如果都失败了，返回默认值
+    return 'windsurf';
   },
 
   /**
